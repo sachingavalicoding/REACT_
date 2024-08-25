@@ -1,124 +1,143 @@
+import { useState, useEffect } from "react";
+
 // eslint-disable-next-line react/prop-types
-const CustomAlert = ({ message, onClose }) => {
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
-        <p className="text-lg font-semibold text-gray-800">{message}</p>
-        <button
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          onClick={onClose}
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  );
+const CustomMessageBox = ({ message, onClose }) => {
+    return (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg text-center w-96">
+                <p className="text-lg font-semibold text-gray-800">{message}</p>
+                <button
+                    className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                    onClick={onClose}
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    );
 };
-import { useState } from "react";
 
 const HomeLayout = () => {
-  const [randomNumber, setRandomNumber] = useState(0);
-  const [inputNumber, setInputNumber] = useState("");
-  const [remainChance, setRemainChance] = useState(3);
-  const [message, setMessage] = useState("You Have 3 Chances");
-  const [alertMessage, setAlertMessage] = useState("");
-  const [showAlert, setShowAlert] = useState(false);
+    const [randomNumber, setRandomNumber] = useState(0);
+    const [inputNumber, setInputNumber] = useState("");
+    const [remainChance, setRemainChance] = useState(3);
+    const [message, setMessage] = useState("You have 3 chances");
+    const [showInstructions, setShowInstructions] = useState(true);
+    const [showMessageBox, setShowMessageBox] = useState(false); // State for custom message box
 
-  const generateRandomNumber = () => {
-    if (remainChance === 3) {
-      const randomNum = Math.floor(Math.random() * 20) + 1;
-      setRandomNumber(randomNum);
-    }
+    useEffect(() => {
+        // Generate random number when component mounts
+        const randomNum = Math.floor(Math.random() * 20) + 1;
+        setRandomNumber(randomNum);
+    }, []);
 
-    const parsedInputNumber = parseInt(inputNumber, 10);
+    const handleInputChange = (e) => {
+        setInputNumber(e.target.value);
+    };
 
-    if (isNaN(parsedInputNumber)) {
-      setMessage("Please enter a valid number.");
-      return;
-    }
-
-    if (parsedInputNumber === randomNumber) {
-      setAlertMessage("Congratulations! You guessed the correct number!");
-      setShowAlert(true);
-      setRemainChance(0);
-    } else {
-      if (remainChance > 0) {
-        if (parsedInputNumber < randomNumber) {
-          setMessage("Your Number is Too Small!");
-        } else if (parsedInputNumber > randomNumber) {
-          setMessage("Your Number is Too Big!");
+    const generateRandomNumber = () => {
+        if (remainChance > 1) {
+            if (parseInt(inputNumber) === randomNumber) {
+                setMessage("Congratulations! You guessed the right number.");
+                setRemainChance(0);
+                setShowMessageBox(true);
+            } else {
+                setMessage(
+                    `Your guess is ${inputNumber < randomNumber ? "too low" : "too high"}`
+                );
+                setRemainChance(remainChance - 1);
+            }
+        } else {
+            setMessage(`Game Over! The correct number was ${randomNumber}`);
+            setShowMessageBox(true);
         }
-        setRemainChance(remainChance - 1);
-      }
+    };
 
-      if (remainChance === 1) {
-        setAlertMessage(`GAME OVER. The Random Number was ${randomNumber}`);
-        setShowAlert(true);
+    const resetGame = () => {
+        const randomNum = Math.floor(Math.random() * 20) + 1;
+        setRandomNumber(randomNum);
+        setInputNumber("");
+        setRemainChance(3);
+        setMessage("You have 3 chances");
+        setShowInstructions(true);
+    };
+
+    const closeInstructions = () => {
+        setShowInstructions(false);
+    };
+
+    const closeMessageBox = () => {
+        setShowMessageBox(false);
         resetGame();
-      }
-    }
-  };
+    };
 
-  const resetGame = () => {
-    setRandomNumber(0);
-    setInputNumber("");
-    setMessage("You Have 3 Chances");
-    setRemainChance(3);
-  };
+    return (
+        <div className="w-full min-h-screen bg-slate-950 text-white relative">
+            <p className="text-3xl text-yellow-400 fixed top-10 right-10">$100</p>
+            <h1 className="text-center text-6xl mt-8 py-8 font-bold">Play & Win</h1>
 
-  const closeAlert = () => {
-    setShowAlert(false);
-    resetGame();
-  };
+            <main className="grid grid-cols-2 gap-8 py-4 bg-slate-800 container mx-auto mt-10 border-2">
+                <div className="bg-red-500 p-3 flex gap-5 items-end justify-center flex-col">
+                    <input
+                        type="text"
+                        value={inputNumber}
+                        className="bg-slate-900 w-48 p-14 text-6xl font-medium outline-none"
+                        onChange={handleInputChange}
+                    />
+                    <p className="bg-black border-[1px] border-slate-600 px-5 py-3 text-xl font-medium">
+                        {message}
+                    </p>
+                </div>
+                <div className="bg-blue-500 gap-4 p-3 flex flex-col items-start justify-center">
+                    <button
+                        className="bg-black w-48 border-[1px] border-slate-600 px-5 py-3 text-xl font-medium duration-300 ease-in hover:bg-blue-600"
+                        onClick={generateRandomNumber}
+                    >
+                        Try Your Luck
+                    </button>
+                    <p className="bg-black text-center w-48 border-[1px] border-slate-600 px-5 py-3 text-xl font-medium duration-300 ease-in hover:bg-red-600">
+                        Remain: {remainChance}
+                    </p>
+                    <button
+                        className="bg-black w-48 border-[1px] border-slate-600 px-5 py-3 mt-4 text-xl font-medium duration-300 ease-in hover:bg-green-600"
+                        onClick={resetGame}
+                    >
+                        Reset Game
+                    </button>
+                </div>
+            </main>
 
-  return (
-    <div className="w-full min-h-screen bg-slate-950">
-      <p className="text-3xl text-yellow-400 fixed top-10 right-10"> $ 100 </p>
-      <h1 className="text-center text-6xl mt-8 py-8 font-bold text-white">
-        Play & Win
-      </h1>
+            {showInstructions && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg text-center w-96">
+                        <h2 className="text-2xl font-bold text-gray-800 mb-4">Game Instructions</h2>
+                        <p className="text-gray-700 mb-4">
+                            A random number between 1 and 20 will be generated. You have 3 chances to guess the correct number.
+                        </p>
+                        <p className="text-gray-700 mb-4">
+                            Enter your guess and click Try Your Luck. The game will guide you if your guess is too high or too low.
+                        </p>
+                        <p className="text-gray-700 mb-4">
+                            If you guess correctly, you win! Otherwise, use the Reset Game button to start over.
+                        </p>
+                        <button
+                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            onClick={closeInstructions}
+                        >
+                            Start Game
+                        </button>
+                    </div>
+                </div>
+            )}
 
-      <main className="grid grid-cols-2 gap-8 text-white py-4 bg-slate-800 container mx-auto mt-10 border-2">
-        <div className="bg-red-500 p-3 flex gap-5 items-end justify-center flex-col">
-          <input
-            type="text"
-            value={inputNumber}
-            className="bg-slate-900 w-48 p-14 text-6xl font-medium outline-none appearance-none"
-            onChange={(e) => setInputNumber(e.target.value)}
-            
-            style={{
-              WebkitAppearance: "none",
-              MozAppearance: "textfield",
-            }}
-          />
-          <div className="message-box bg-gradient-to-r from-purple-500 to-indigo-500 border-2 border-indigo-700 rounded-lg px-5 py-3 text-white text-xl font-semibold text-center shadow-lg mt-4">
-            {message}
-          </div>
+            {showMessageBox && (
+                <CustomMessageBox
+                    message={remainChance > 0 ? message : `Game Over! The correct number was ${randomNumber}.`}
+                    onClose={closeMessageBox}
+                />
+            )}
         </div>
-        <div className="bg-blue-500 gap-4 p-3 flex flex-col items-start justify-center">
-          <button
-            className="bg-black w-48 border-[1px] border-slate-600 px-5 py-3 text-white text-xl font-medium duration-300 ease-in hover:bg-blue-600"
-            onClick={generateRandomNumber}
-          >
-            TRY LUCK
-          </button>
-          <p
-            className="bg-black text-center w-48 border-[1px] border-slate-600 px-5 py-3 text-white text-xl font-medium duration-300 ease-in hover:bg-red-600"
-          >
-            REMAIN: {remainChance}
-          </p>
-          <button
-            className="bg-red-600 w-48 border-[1px] border-slate-600 px-5 py-3 text-white text-xl font-medium duration-300 ease-in hover:bg-red-800"
-            onClick={resetGame}
-          >
-            RESET GAME
-          </button>
-        </div>
-      </main>
-
-      {showAlert && <CustomAlert message={alertMessage} onClose={closeAlert} />}
-    </div>
-  );
+    );
 };
 
 export default HomeLayout;
